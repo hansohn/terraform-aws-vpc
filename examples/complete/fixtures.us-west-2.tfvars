@@ -5,7 +5,7 @@ namespace = "eg"
 stage = "test"
 name = "vpc"
 
-cidr_block = "10.10.0.0/22"
+cidr_block = "10.0.0.0/22"
 enable_dns_support = true
 enable_dns_hostnames = true
 assign_generated_ipv6_cidr_block = true

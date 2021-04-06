@@ -96,8 +96,8 @@ variable "manage_default_security_group" {
 }
 
 variable "default_security_group_ingress" {
-  type        = list(any)
-  default     = [
+  type = list(any)
+  default = [
     {
       from_port = 0
       to_port   = 0
@@ -105,12 +105,12 @@ variable "default_security_group_ingress" {
       self      = true
     }
   ]
-  description = "List of maps of ingress rules to set on the default security group" 
+  description = "List of maps of ingress rules to set on the default security group"
 }
 
 variable "default_security_group_egress" {
-  type        = list(any)
-  default     = [
+  type = list(any)
+  default = [
     {
       from_port   = 0
       to_port     = 0
@@ -118,7 +118,7 @@ variable "default_security_group_egress" {
       cidr_blocks = ["0.0.0.0/0"]
     }
   ]
-  description = "List of maps of egress rules to set on the default security group" 
+  description = "List of maps of egress rules to set on the default security group"
 }
 
 #--------------------------------------------------------------
