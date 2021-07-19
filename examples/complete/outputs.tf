@@ -77,27 +77,27 @@ output "vpc_owner_id" {
 #--------------------------------------------------------------
 
 output "default_network_acl_id" {
-  value = module.vpc.default_network_acl_id
+  value       = module.vpc.default_network_acl_id
   description = "The ID of the Default Network ACL"
 }
 
 output "default_network_acl_arn" {
-  value = module.vpc.default_network_acl_arn
+  value       = module.vpc.default_network_acl_arn
   description = "The ARN of the Default Network ACL"
 }
 
 output "default_network_acl_vpc_id" {
-  value = module.vpc.default_network_acl_vpc_id
+  value       = module.vpc.default_network_acl_vpc_id
   description = "The ID of the associated VPC"
 }
 
 output "default_network_acl_subnet_ids" {
-  value = module.vpc.default_network_acl_subnet_ids
+  value       = module.vpc.default_network_acl_subnet_ids
   description = "IDs of associated Subnets"
 }
 
 output "default_network_acl_owner_id" {
-  value = module.vpc.default_network_acl_owner_id
+  value       = module.vpc.default_network_acl_owner_id
   description = "The ID of the AWS account that owns the Default Network ACL"
 }
 

@@ -106,8 +106,8 @@ variable "manage_default_security_group" {
 }
 
 variable "default_security_group_ingress" {
-  type        = list(any)
-  default     = [
+  type = list(any)
+  default = [
     {
       from_port = 0
       to_port   = 0
@@ -119,8 +119,8 @@ variable "default_security_group_ingress" {
 }
 
 variable "default_security_group_egress" {
-  type        = list(any)
-  default     = [
+  type = list(any)
+  default = [
     {
       from_port   = 0
       to_port     = 0

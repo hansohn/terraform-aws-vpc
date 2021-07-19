@@ -1,15 +1,15 @@
-region = "us-west-2"
+region             = "us-west-2"
 availability_zones = ["us-west-2a", "us-west-2b"]
 
 namespace = "eg"
-stage = "test"
-name = "vpc"
+stage     = "test"
+name      = "vpc"
 
-cidr_block = "10.0.0.0/22"
-enable_dns_support = true
-enable_dns_hostnames = true
+cidr_block                       = "10.0.0.0/22"
+enable_dns_support               = true
+enable_dns_hostnames             = true
 assign_generated_ipv6_cidr_block = true
-enable_internet_gateway = true
+enable_internet_gateway          = true
 
 default_network_acl_ingress = [
   {
@@ -86,11 +86,11 @@ public_egress_acl_rules = [
 ]
 
 private_ingress_acl_rules = [
-{
-  rule_number = 100
-  rule_action = "allow"
-  from_port   = 0
-  to_port     = 0
+  {
+    rule_number = 100
+    rule_action = "allow"
+    from_port   = 0
+    to_port     = 0
     protocol    = "-1"
     cidr_block  = "0.0.0.0/0"
   },
