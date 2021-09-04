@@ -10,4 +10,3 @@
 ## references
 * Link to any supporting github issues or helpful documentation to add some context (e.g. stackoverflow). 
 * Use `closes #123`, if this PR closes a GitHub issue `#123`
-
