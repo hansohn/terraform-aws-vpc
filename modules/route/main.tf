@@ -3,7 +3,7 @@
 #--------------------------------------------------------------
 
 resource "aws_route" "this" {
-  count                       = var.enabled
+  count                       = var.enabled ? 1 : 0
   route_table_id              = var.route_table_id
   destination_cidr_block      = var.destination_cidr_block
   destination_ipv6_cidr_block = var.destination_ipv6_cidr_block

@@ -3,7 +3,7 @@
 #--------------------------------------------------------------
 
 resource "aws_vpc_endpoint" "this" {
-  count               = module.lable.enabled
+  count               = module.this.enabled
   service_name        = var.service_name
   vpc_id              = var.vpc_id
   auto_accept         = var.auto_accept
