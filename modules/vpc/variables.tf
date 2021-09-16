@@ -5,7 +5,7 @@
 variable "cidr_block" {
   type        = string
   default     = null
-  description = "(Required) The CIDR block for the VPC." 
+  description = "(Required) The CIDR block for the VPC."
 }
 
 variable "instance_tenancy" {
