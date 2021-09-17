@@ -12,15 +12,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    # - name: Install Python
-    #   uses: actions/setup-python@v2
-    # - name: Install pre-commit dependencies
-    #   run: |
-    #     pip install pre-commit
-    #     curl -Lo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.15.0/terraform-docs-v0.15.0-$(uname)-amd64.tar.gz && tar -xzf terraform-docs.tar.gz terraform-docs && chmod +x terraform-docs && sudo mv terraform-docs /usr/bin/
     - name: Install dependencies
-      run: curl -Lo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.15.0/terraform-docs-v0.15.0-$(uname)-amd64.tar.gz && tar -xzf terraform-docs.tar.gz terraform-docs && chmod +x terraform-docs && sudo mv terraform-docs /usr/bin/
-
+      run: |
+        curl -Lo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.15.0/terraform-docs-v0.15.0-$(uname)-amd64.tar.gz
+        tar -xzf terraform-docs.tar.gz terraform-docs
+        chmod +x terraform-docs
+        sudo mv terraform-docs /usr/bin/
 
     - name: Update context.tf
       shell: bash
@@ -36,14 +33,10 @@ jobs:
           else
             echo "context.tf file has changed. Update examples and rebuild README.md."
             tmp_file=$(mktemp)
-            text_file="README.md"
-            terraform-docs md ./ > "$tmp_file"
-            # Replace content between markers with the placeholder - https://stackoverflow.com/questions/1212799/how-do-i-extract-lines-between-two-line-delimiters-in-perl#1212834
-            perl -i -ne 'if (/BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK/../END OF PRE-COMMIT-TERRAFORM DOCS HOOK/) { print $_ if /BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK/; print "I_WANT_TO_BE_REPLACED\n$_" if /END OF PRE-COMMIT-TERRAFORM DOCS HOOK/;} else { print $_ }' "$text_file"
-            # Replace placeholder with the content of the file
-            perl -i -e 'open(F, "'"$tmp_file"'"); $f = join "", <F>; while(<>){if (/I_WANT_TO_BE_REPLACED/) {print $f} else {print $_};}' "$text_file"
+            terraform-docs --lockfile=false markdown ./ > "$tmp_file"
+            perl -i -ne 'if (/BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK/../END OF PRE-COMMIT-TERRAFORM DOCS HOOK/) { print $_ if /BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK/; print "I_WANT_TO_BE_REPLACED\n$_" if /END OF PRE-COMMIT-TERRAFORM DOCS HOOK/;} else { print $_ }' "README.md"
+            perl -i -e 'open(F, "'"$tmp_file"'"); $f = join "", <F>; while(<>){if (/I_WANT_TO_BE_REPLACED/) {print $f} else {print $_};}' "README.md"
             rm -f "$tmp_file"
-            #pre-commit run terraform_docs --color=always --show-diff-on-failure
             echo "::set-output name=create_pull_request::true"
           fi
         else
