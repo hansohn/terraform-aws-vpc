@@ -14,7 +14,7 @@ Terraform module to provision a VPC with Internet Gateway.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 3.58.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 3.38 |
 
 ## Modules
 
@@ -31,8 +31,8 @@ Terraform module to provision a VPC with Internet Gateway.
 | <a name="module_public_label"></a> [public\_label](#module\_public\_label) | cloudposse/label/null | 0.24.1 |
 | <a name="module_public_subnet_label"></a> [public\_subnet\_label](#module\_public\_subnet\_label) | cloudposse/label/null | 0.24.1 |
 | <a name="module_s3_vpc_endpoint_label"></a> [s3\_vpc\_endpoint\_label](#module\_s3\_vpc\_endpoint\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_this"></a> [this](#module\_this) | cloudposse/label/null | 0.24.1 |
-| <a name="module_vpc_label"></a> [vpc\_label](#module\_vpc\_label) | cloudposse/label/null | 0.24.1 |
+| <a name="module_this"></a> [this](#module\_this) | cloudposse/label/null | 0.25.0 |
+| <a name="module_vpc_label"></a> [vpc\_label](#module\_vpc\_label) | cloudposse/label/null | 0.25.0 |
 
 ## Resources
 
