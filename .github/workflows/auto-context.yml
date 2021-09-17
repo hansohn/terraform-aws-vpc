@@ -1,13 +1,12 @@
 name: "auto-context"
 on:
-  push
-  # schedule:
-  # # Update context.tf nightly
-  # - cron:  '0 3 * * *'
+  schedule:
+  # Update context.tf nightly
+  - cron:  '0 3 * * *'
 
 jobs:
   update:
-    #if: github.event_name == 'schedule'
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
