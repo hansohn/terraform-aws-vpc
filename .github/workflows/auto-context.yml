@@ -1,13 +1,12 @@
 name: "auto-context"
 on:
-  push
-  # schedule:
-  # # Update context.tf nightly
-  # - cron:  '0 3 * * *'
+  schedule:
+  # Update context.tf nightly
+  - cron:  '0 3 * * *'
 
 jobs:
   update:
-    #if: github.event_name == 'schedule'
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -16,6 +15,7 @@ jobs:
       run: |
         curl -Lo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.15.0/terraform-docs-v0.15.0-$(uname)-amd64.tar.gz
         tar -xzf terraform-docs.tar.gz terraform-docs
+        rm -f terraform-docs.tar.gz
         chmod +x terraform-docs
         sudo mv terraform-docs /usr/bin/
 
