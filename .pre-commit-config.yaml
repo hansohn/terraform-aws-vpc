@@ -4,9 +4,9 @@ repos:
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
-      - id: terraform_docs
-        args:
-          - '--args=--lockfile=false'
+        # - id: terraform_docs
+        #   args:
+        #     - '--args=--lockfile=false'
       - id: terraform_tflint
         args:
           - '--args=--enable-plugin=aws'
@@ -22,6 +22,16 @@ repos:
           - '--args=--only=terraform_required_providers'
           - '--args=--only=terraform_workspace_remote'
       - id: terraform_tfsec
+  - repo: https://github.com/terraform-docs/terraform-docs
+    rev: v0.15.0
+    hooks:
+      - id: terraform-docs-go
+        args:
+          - "markdown"
+          - "table"
+          - "--lockfile=false"
+          - "--output-file"
+          - "README.md"
   - repo: git://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
     hooks:
