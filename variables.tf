@@ -58,14 +58,14 @@ variable "default_network_acl_ingress" {
   type        = list(any)
 
   default = [
-    {
-      rule_no    = 100
-      action     = "allow"
-      from_port  = 0
-      to_port    = 0
-      protocol   = "-1"
-      cidr_block = "0.0.0.0/0"
-    },
+    # {
+    #   rule_no    = 100
+    #   action     = "allow"
+    #   from_port  = 0
+    #   to_port    = 0
+    #   protocol   = "-1"
+    #   cidr_block = "0.0.0.0/0"
+    # },
   ]
 }
 
@@ -178,14 +178,14 @@ variable "public_ingress_acl_rules" {
   type        = list(map(string))
 
   default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
+    # {
+    #   rule_number = 100
+    #   rule_action = "allow"
+    #   from_port   = 0
+    #   to_port     = 0
+    #   protocol    = "-1"
+    #   cidr_block  = "0.0.0.0/0"
+    # },
   ]
 }
 
@@ -224,14 +224,14 @@ variable "private_ingress_acl_rules" {
   type        = list(map(string))
 
   default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
+    # {
+    #   rule_number = 100
+    #   rule_action = "allow"
+    #   from_port   = 0
+    #   to_port     = 0
+    #   protocol    = "-1"
+    #   cidr_block  = "0.0.0.0/0"
+    # },
   ]
 }
 
@@ -270,14 +270,14 @@ variable "intra_ingress_acl_rules" {
   type        = list(map(string))
 
   default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
+    # {
+    #   rule_number = 100
+    #   rule_action = "allow"
+    #   from_port   = 0
+    #   to_port     = 0
+    #   protocol    = "-1"
+    #   cidr_block  = "0.0.0.0/0"
+    # },
   ]
 }
 
