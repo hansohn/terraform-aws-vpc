@@ -32,6 +32,8 @@ repos:
           - "--lockfile=false"
           - "--output-file"
           - "README.md"
+          - "--output-mode"
+          - "inject"
           - "."
   - repo: git://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
