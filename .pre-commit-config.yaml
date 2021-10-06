@@ -22,7 +22,7 @@ repos:
   - repo: https://github.com/terraform-docs/terraform-docs
     rev: v0.15.0
     hooks:
-      - id: terraform-docs-go
+      - id: terraform-docs-system
         args:
           - "markdown"
           - "table"
