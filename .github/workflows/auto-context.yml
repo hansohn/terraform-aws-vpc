@@ -34,9 +34,7 @@ jobs:
             echo "context.tf file has changed. Update examples and rebuild README.md."
             tmp_file=$(mktemp)
             terraform-docs --lockfile=false markdown ./ > "$tmp_file"
-            sed -i -ne '/<!--- BEGIN_TF_DOCS --->/ {p; r '"$tmp_file" -e ':a; n; /<!--- END_TF_DOCS --->/ {p; b}; ba}; p' "README.md"
-            # perl -i -ne 'if (/BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK/../END OF PRE-COMMIT-TERRAFORM DOCS HOOK/) { print $_ if /BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK/; print "I_WANT_TO_BE_REPLACED\n$_" if /END OF PRE-COMMIT-TERRAFORM DOCS HOOK/;} else { print $_ }' "README.md"
-            # perl -i -e 'open(F, "'"$tmp_file"'"); $f = join "", <F>; while(<>){if (/I_WANT_TO_BE_REPLACED/) {print $f} else {print $_};}' "README.md"
+            sed -i -ne '/<!-- BEGIN_TF_DOCS -->/ {p; r '"$tmp_file" -e ':a; n; /<!-- END_TF_DOCS -->/ {p; b}; ba}; p' "README.md"
             rm -f "$tmp_file"
             echo "::set-output name=create_pull_request::true"
           fi
