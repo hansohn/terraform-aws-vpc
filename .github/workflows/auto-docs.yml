@@ -25,7 +25,8 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }}
 
     - name: Render terraform docs inside the README.md
-      uses: terraform-docs/gh-actions@v0.10.0
+      # uses: terraform-docs/gh-actions@v0.10.0
+      uses: hansohn/gh-actions@fix_block_delim
       with:
         args: "--lockfile=false" 
         git-commit-message: "docs(readme): automated action"
