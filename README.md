@@ -20,17 +20,17 @@ Terraform module to provision a VPC with Internet Gateway.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_default_label"></a> [default\_label](#module\_default\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_dynamodb_vpc_endpoint_label"></a> [dynamodb\_vpc\_endpoint\_label](#module\_dynamodb\_vpc\_endpoint\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_igw_label"></a> [igw\_label](#module\_igw\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_intra_label"></a> [intra\_label](#module\_intra\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_intra_subnet_label"></a> [intra\_subnet\_label](#module\_intra\_subnet\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_nat_label"></a> [nat\_label](#module\_nat\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_private_label"></a> [private\_label](#module\_private\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_private_subnet_label"></a> [private\_subnet\_label](#module\_private\_subnet\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_public_label"></a> [public\_label](#module\_public\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_public_subnet_label"></a> [public\_subnet\_label](#module\_public\_subnet\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_s3_vpc_endpoint_label"></a> [s3\_vpc\_endpoint\_label](#module\_s3\_vpc\_endpoint\_label) | cloudposse/label/null | 0.24.1 |
+| <a name="module_default_label"></a> [default\_label](#module\_default\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_dynamodb_vpc_endpoint_label"></a> [dynamodb\_vpc\_endpoint\_label](#module\_dynamodb\_vpc\_endpoint\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_igw_label"></a> [igw\_label](#module\_igw\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_intra_label"></a> [intra\_label](#module\_intra\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_intra_subnet_label"></a> [intra\_subnet\_label](#module\_intra\_subnet\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_nat_label"></a> [nat\_label](#module\_nat\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_private_label"></a> [private\_label](#module\_private\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_private_subnet_label"></a> [private\_subnet\_label](#module\_private\_subnet\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_public_label"></a> [public\_label](#module\_public\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_public_subnet_label"></a> [public\_subnet\_label](#module\_public\_subnet\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_s3_vpc_endpoint_label"></a> [s3\_vpc\_endpoint\_label](#module\_s3\_vpc\_endpoint\_label) | cloudposse/label/null | 0.25.0 |
 | <a name="module_this"></a> [this](#module\_this) | cloudposse/label/null | 0.25.0 |
 | <a name="module_vpc_label"></a> [vpc\_label](#module\_vpc\_label) | cloudposse/label/null | 0.25.0 |
 

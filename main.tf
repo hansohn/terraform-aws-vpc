@@ -12,14 +12,14 @@ module "vpc_label" {
 
 module "default_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.this.enabled
   attributes = compact(concat(module.this.attributes, ["default"]))
   context    = module.this.context
 }
 module "private_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.this.enabled && var.enable_private_network
   attributes = compact(concat(module.this.attributes, ["private"]))
   context    = module.this.context
@@ -27,7 +27,7 @@ module "private_label" {
 
 module "private_subnet_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.private_label.enabled
   attributes = compact(concat(module.this.attributes, ["subnet", "private"]))
   context    = module.this.context
@@ -35,7 +35,7 @@ module "private_subnet_label" {
 
 module "intra_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.this.enabled && var.enable_intra_network
   attributes = compact(concat(module.this.attributes, ["intra"]))
   context    = module.this.context
@@ -43,7 +43,7 @@ module "intra_label" {
 
 module "intra_subnet_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.intra_label.enabled
   attributes = compact(concat(module.this.attributes, ["subnet", "intra"]))
   context    = module.this.context
@@ -51,7 +51,7 @@ module "intra_subnet_label" {
 
 module "public_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.this.enabled && var.enable_public_network
   attributes = compact(concat(module.this.attributes, ["public"]))
   context    = module.this.context
@@ -59,7 +59,7 @@ module "public_label" {
 
 module "public_subnet_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.public_label.enabled
   attributes = compact(concat(module.this.attributes, ["subnet", "public"]))
   context    = module.this.context
@@ -67,7 +67,7 @@ module "public_subnet_label" {
 
 module "igw_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.public_subnet_label.enabled && var.enable_internet_gateway
   attributes = compact(concat(module.this.attributes, ["igw"]))
   context    = module.this.context
@@ -75,7 +75,7 @@ module "igw_label" {
 
 module "nat_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.private_subnet_label.enabled && module.public_subnet_label.enabled
   attributes = compact(concat(module.this.attributes, ["nat"]))
   context    = module.this.context
@@ -83,7 +83,7 @@ module "nat_label" {
 
 module "s3_vpc_endpoint_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.this.enabled
   attributes = compact(concat(module.this.attributes, ["vpce", "s3"]))
   context    = module.this.context
@@ -91,7 +91,7 @@ module "s3_vpc_endpoint_label" {
 
 module "dynamodb_vpc_endpoint_label" {
   source     = "cloudposse/label/null"
-  version    = "0.24.1"
+  version    = "0.25.0"
   enabled    = module.this.enabled
   attributes = compact(concat(module.this.attributes, ["vpce", "dynamodb"]))
   context    = module.this.context
