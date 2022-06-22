@@ -132,19 +132,25 @@ variable "enable_internet_gateway" {
 }
 
 #--------------------------------------------------------------
-# Availability Zones
+# Dynamic Subnets
 #--------------------------------------------------------------
 
-variable "exclude_names" {
-  type        = list(string)
-  default     = null
-  description = "(Optional) List of Availability Zone names to exclude."
+variable "enable_dynamic_subnets" {
+  type        = bool
+  default     = false
+  description = "(Optional) Auto-generates subnet CIDRs based on desired availability zones and enabled networks'"
 }
 
-variable "exclude_zone_ids" {
+variable "exclude_availability_zone_names" {
   type        = list(string)
   default     = null
-  description = "(Optional) List of Availability Zone IDs to exclude."
+  description = "(Optional) List of Availability Zone names to exclude from state query"
+}
+
+variable "exclude_availability_zone_ids" {
+  type        = list(string)
+  default     = null
+  description = "(Optional) List of Availability Zone IDs to exclude from state query"
 }
 
 variable "max_availability_zones" {
@@ -167,6 +173,16 @@ variable "enable_public_network" {
   type        = bool
   default     = true
   description = "Enables public network resource creation"
+}
+
+#--------------------------------------------------------------
+# Public Network Subnet
+#--------------------------------------------------------------
+
+variable "public_subnet_cidrs" {
+  type        = map(list(string))
+  default     = {}
+  description = "(Optional) List of Public Subnet CIDRs. Used when enable_dynamic_subnets is disabled"
 }
 
 #--------------------------------------------------------------
@@ -206,6 +222,62 @@ variable "public_egress_acl_rules" {
 }
 
 #--------------------------------------------------------------
+# Protected Network
+#--------------------------------------------------------------
+
+variable "enable_protected_network" {
+  type        = bool
+  default     = true
+  description = "Enables protected network resource creation"
+}
+
+#--------------------------------------------------------------
+# Protected Network Subnet
+#--------------------------------------------------------------
+
+variable "protected_subnet_cidrs" {
+  type        = map(list(string))
+  default     = {}
+  description = "(Optional) List of Protected Subnet CIDRs. Used when enable_dynamic_subnets is disabled"
+}
+
+#--------------------------------------------------------------
+# Protected Network ACL
+#--------------------------------------------------------------
+
+variable "protected_ingress_acl_rules" {
+  description = "Protected subnets inbound network ACLs"
+  type        = list(map(string))
+
+  default = [
+    # {
+    #   rule_number = 100
+    #   rule_action = "allow"
+    #   from_port   = 0
+    #   to_port     = 0
+    #   protocol    = "-1"
+    #   cidr_block  = "0.0.0.0/0"
+    # },
+  ]
+}
+
+variable "protected_egress_acl_rules" {
+  description = "Protected subnets outbound network ACLs"
+  type        = list(map(string))
+
+  default = [
+    {
+      rule_number = 100
+      rule_action = "allow"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_block  = "0.0.0.0/0"
+    },
+  ]
+}
+
+#--------------------------------------------------------------
 # Private Network
 #--------------------------------------------------------------
 
@@ -213,6 +285,16 @@ variable "enable_private_network" {
   type        = bool
   default     = true
   description = "Enables private network resource creation"
+}
+
+#--------------------------------------------------------------
+# Private Network Subnet
+#--------------------------------------------------------------
+
+variable "private_subnet_cidrs" {
+  type        = map(list(string))
+  default     = {}
+  description = "(Optional) List of Private Subnet CIDRs. Used when enable_dynamic_subnets is disabled"
 }
 
 #--------------------------------------------------------------
@@ -237,52 +319,6 @@ variable "private_ingress_acl_rules" {
 
 variable "private_egress_acl_rules" {
   description = "Private subnets outbound network ACLs"
-  type        = list(map(string))
-
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-#--------------------------------------------------------------
-# Intra Network
-#--------------------------------------------------------------
-
-variable "enable_intra_network" {
-  type        = bool
-  default     = true
-  description = "Enables intra network resource creation"
-}
-
-#--------------------------------------------------------------
-# Intra Network ACL
-#--------------------------------------------------------------
-
-variable "intra_ingress_acl_rules" {
-  description = "Intra subnets inbound network ACLs"
-  type        = list(map(string))
-
-  default = [
-    # {
-    #   rule_number = 100
-    #   rule_action = "allow"
-    #   from_port   = 0
-    #   to_port     = 0
-    #   protocol    = "-1"
-    #   cidr_block  = "0.0.0.0/0"
-    # },
-  ]
-}
-
-variable "intra_egress_acl_rules" {
-  description = "Intra subnets outbound network ACLs"
   type        = list(map(string))
 
   default = [

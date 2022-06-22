@@ -1,5 +1,4 @@
-region             = "us-west-2"
-availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"]
+region = "us-west-2"
 
 namespace = "eg"
 stage     = "test"
@@ -11,10 +10,28 @@ enable_dns_hostnames             = true
 assign_generated_ipv6_cidr_block = true
 enable_internet_gateway          = true
 
-enable_dynamic_subnets   = false
-enable_public_network    = true
+enable_dynamic_subnets = false
+enable_public_network  = true
+public_subnet_cidrs = {
+  "us-west-2a" : ["10.0.0.0/26"],
+  "us-west-2b" : ["10.0.0.64/26"],
+  "us-west-2c" : ["10.0.0.128/26"],
+  "us-west-2d" : ["10.0.0.192/26"],
+}
 enable_protected_network = true
-enable_private_network   = true
+protected_subnet_cidrs = {
+  "us-west-2a" : ["10.0.1.0/26"],
+  "us-west-2b" : ["10.0.1.64/26"],
+  "us-west-2c" : ["10.0.1.128/26"],
+  "us-west-2d" : ["10.0.1.192/26"],
+}
+enable_private_network = true
+private_subnet_cidrs = {
+  "us-west-2a" : ["10.0.2.0/26"],
+  "us-west-2b" : ["10.0.2.64/26"],
+  "us-west-2c" : ["10.0.2.128/26"],
+  "us-west-2d" : ["10.0.2.192/26"],
+}
 
 default_network_acl_ingress = [
   {

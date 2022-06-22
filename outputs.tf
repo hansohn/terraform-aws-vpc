@@ -207,6 +207,49 @@ output "public_route_table_owner_id" {
 }
 
 #--------------------------------------------------------------
+# Protected Subnet
+#--------------------------------------------------------------
+
+output "protected_subnet_ids" {
+  value       = aws_subnet.protected.*.id
+  description = "The IDs of the Protected subnets"
+}
+
+output "protected_subnet_arns" {
+  value       = aws_subnet.protected.*.arn
+  description = "The ARNs of the Protected subnets."
+}
+
+output "protected_subnet_cidr_blocks" {
+  value       = aws_subnet.protected.*.cidr_block
+  description = "The CIDR blocks of the created Protected subnets"
+}
+
+output "protected_subnet_ipv6_cidr_block_association_ids" {
+  value       = aws_subnet.protected.*.ipv6_cidr_block_association_id
+  description = "The association IDs for the IPv6 CIDR blocks of the Protected subnets."
+}
+
+output "protected_subnet_owner_ids" {
+  value       = aws_subnet.protected.*.owner_id
+  description = "The ID of the AWS account that owns the Protected subnets."
+}
+
+#--------------------------------------------------------------
+# Protected Route Table
+#--------------------------------------------------------------
+
+output "protected_route_table_ids" {
+  value       = aws_route_table.protected.*.id
+  description = "The ID of the Protected routing table."
+}
+
+output "protected_route_table_owner_ids" {
+  value       = aws_route_table.protected.*.owner_id
+  description = "The ID of the AWS account that owns the Protected route table."
+}
+
+#--------------------------------------------------------------
 # Private Subnet
 #--------------------------------------------------------------
 
@@ -239,55 +282,12 @@ output "private_subnet_owner_ids" {
 # Private Route Table
 #--------------------------------------------------------------
 
-output "private_route_table_ids" {
-  value       = aws_route_table.private.*.id
+output "private_route_table_id" {
+  value       = element(concat(aws_route_table.private.*.id, [""]), 0)
   description = "The ID of the Private routing table."
 }
 
-output "private_route_table_owner_ids" {
-  value       = aws_route_table.private.*.owner_id
+output "private_route_table_owner_id" {
+  value       = element(concat(aws_route_table.private.*.owner_id, [""]), 0)
   description = "The ID of the AWS account that owns the Private route table."
-}
-
-#--------------------------------------------------------------
-# Intra Subnet
-#--------------------------------------------------------------
-
-output "intra_subnet_ids" {
-  value       = aws_subnet.intra.*.id
-  description = "The IDs of the Intra subnets"
-}
-
-output "intra_subnet_arns" {
-  value       = aws_subnet.intra.*.arn
-  description = "The ARNs of the Intra subnets."
-}
-
-output "intra_subnet_cidr_blocks" {
-  value       = aws_subnet.intra.*.cidr_block
-  description = "The CIDR blocks of the created Intra subnets"
-}
-
-output "intra_subnet_ipv6_cidr_block_association_ids" {
-  value       = aws_subnet.intra.*.ipv6_cidr_block_association_id
-  description = "The association IDs for the IPv6 CIDR blocks of the Intra subnets."
-}
-
-output "intra_subnet_owner_ids" {
-  value       = aws_subnet.intra.*.owner_id
-  description = "The ID of the AWS account that owns the Intra subnets."
-}
-
-#--------------------------------------------------------------
-# Intra Route Table
-#--------------------------------------------------------------
-
-output "intra_route_table_id" {
-  value       = element(concat(aws_route_table.intra.*.id, [""]), 0)
-  description = "The ID of the Intra routing table."
-}
-
-output "intra_route_table_owner_id" {
-  value       = element(concat(aws_route_table.intra.*.owner_id, [""]), 0)
-  description = "The ID of the AWS account that owns the Intra route table."
 }

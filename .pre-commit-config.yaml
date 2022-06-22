@@ -6,7 +6,8 @@ repos:
       - id: terraform_validate
       - id: terraform_tflint
         args:
-          - '--args=--enable-plugin=aws'
+          - '--args=--config=.tflint.hcl'
+          # - '--args=--enable-plugin=aws'
           - '--args=--only=terraform_deprecated_interpolation'
           - '--args=--only=terraform_deprecated_index'
           - '--args=--only=terraform_comment_syntax'

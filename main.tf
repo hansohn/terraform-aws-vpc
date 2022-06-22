@@ -17,37 +17,6 @@ module "default_label" {
   attributes = compact(concat(module.this.attributes, ["default"]))
   context    = module.this.context
 }
-module "private_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
-  enabled    = module.this.enabled && var.enable_private_network
-  attributes = compact(concat(module.this.attributes, ["private"]))
-  context    = module.this.context
-}
-
-module "private_subnet_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
-  enabled    = module.private_label.enabled
-  attributes = compact(concat(module.this.attributes, ["subnet", "private"]))
-  context    = module.this.context
-}
-
-module "intra_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
-  enabled    = module.this.enabled && var.enable_intra_network
-  attributes = compact(concat(module.this.attributes, ["intra"]))
-  context    = module.this.context
-}
-
-module "intra_subnet_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
-  enabled    = module.intra_label.enabled
-  attributes = compact(concat(module.this.attributes, ["subnet", "intra"]))
-  context    = module.this.context
-}
 
 module "public_label" {
   source     = "cloudposse/label/null"
@@ -65,6 +34,38 @@ module "public_subnet_label" {
   context    = module.this.context
 }
 
+module "protected_label" {
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = module.this.enabled && var.enable_protected_network
+  attributes = compact(concat(module.this.attributes, ["protected"]))
+  context    = module.this.context
+}
+
+module "protected_subnet_label" {
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = module.protected_label.enabled
+  attributes = compact(concat(module.this.attributes, ["subnet", "protected"]))
+  context    = module.this.context
+}
+
+module "private_label" {
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = module.this.enabled && var.enable_private_network
+  attributes = compact(concat(module.this.attributes, ["private"]))
+  context    = module.this.context
+}
+
+module "private_subnet_label" {
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = module.private_label.enabled
+  attributes = compact(concat(module.this.attributes, ["subnet", "private"]))
+  context    = module.this.context
+}
+
 module "igw_label" {
   source     = "cloudposse/label/null"
   version    = "0.25.0"
@@ -76,7 +77,7 @@ module "igw_label" {
 module "nat_label" {
   source     = "cloudposse/label/null"
   version    = "0.25.0"
-  enabled    = module.private_subnet_label.enabled && module.public_subnet_label.enabled
+  enabled    = module.protected_subnet_label.enabled && module.public_subnet_label.enabled
   attributes = compact(concat(module.this.attributes, ["nat"]))
   context    = module.this.context
 }
@@ -126,14 +127,14 @@ resource "aws_default_network_acl" "this" {
   default_network_acl_id = aws_vpc.this[0].default_network_acl_id
   subnet_ids = setsubtract(
     compact(flatten([
-      aws_subnet.private.*.id,
-      aws_subnet.intra.*.id,
-      aws_subnet.public.*.id
+      aws_subnet.public.*.id,
+      aws_subnet.protected.*.id,
+      aws_subnet.private.*.id
     ])),
     compact(flatten([
-      aws_network_acl.private.*.subnet_ids,
-      aws_network_acl.intra.*.subnet_ids,
-      aws_network_acl.public.*.subnet_ids
+      aws_network_acl.public.*.subnet_ids,
+      aws_network_acl.protected.*.subnet_ids,
+      aws_network_acl.private.*.subnet_ids
     ]))
   )
   dynamic "ingress" {
@@ -226,211 +227,44 @@ resource "aws_internet_gateway" "this" {
 }
 
 #--------------------------------------------------------------
-# Availability Zones
+# Subnetting
 #--------------------------------------------------------------
 
 data "aws_availability_zones" "available" {
-  exclude_names    = var.exclude_names
-  exclude_zone_ids = var.exclude_zone_ids
+  exclude_names    = var.exclude_availability_zone_names
+  exclude_zone_ids = var.exclude_availability_zone_ids
   state            = "available"
 }
 
 locals {
-  max_availability_zones = min(compact([length(data.aws_availability_zones.available.names), var.max_availability_zones])...)
-  availability_zones = coalescelist(
+  # dynamic subnets
+  dyn_max_azs = min(compact([length(data.aws_availability_zones.available.names), var.max_availability_zones])...)
+  dyn_azs = coalescelist(
     var.availability_zones,
-    slice(data.aws_availability_zones.available.names, 0, local.max_availability_zones)
+    slice(data.aws_availability_zones.available.names, 0, local.dyn_max_azs)
   )
+  dyn_azs_count         = length(local.dyn_azs)
+  dyn_subnet_types      = length([for i in [module.public_subnet_label.enabled, module.protected_subnet_label.enabled, module.private_subnet_label.enabled] : i if i == true])
+  dyn_subnet_newbits    = ceil(log(local.dyn_subnet_types * local.dyn_azs_count, 2))
+  dyn_public_subnets    = module.public_subnet_label.enabled && var.enable_dynamic_subnets ? zipmap([for i in range(0, local.dyn_azs_count) : cidrsubnet(var.cidr_block, local.dyn_subnet_newbits, i)], local.dyn_azs) : {}
+  dyn_protected_subnets = module.protected_subnet_label.enabled && var.enable_dynamic_subnets ? zipmap([for i in range(0, local.dyn_azs_count) : cidrsubnet(var.cidr_block, local.dyn_subnet_newbits, length(local.dyn_public_subnets) + i)], local.dyn_azs) : {}
+  dyn_private_subnets   = module.private_subnet_label.enabled && var.enable_dynamic_subnets ? zipmap([for i in range(0, local.dyn_azs_count) : cidrsubnet(var.cidr_block, local.dyn_subnet_newbits, length(local.dyn_public_subnets) + length(local.dyn_protected_subnets) + i)], local.dyn_azs) : {}
+
+  # static subnets
+  static_azs               = distinct(flatten([values(var.public_subnet_cidrs), values(var.protected_subnet_cidrs), values(var.private_subnet_cidrs)]))
+  static_public_subnets    = module.public_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.public_subnet_cidrs : { for i in v : "${i}" => k }]...) : {}
+  static_protected_subnets = module.protected_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.protected_subnet_cidrs : { for i in v : "${i}" => k }]...) : {}
+  static_private_subnets   = module.private_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.private_subnet_cidrs : { for i in v : "${i}" => k }]...) : {}
+
+  # computed subnets
+  availability_zones       = var.enable_dynamic_subnets ? local.dyn_azs : local.static_azs
   availability_zones_count = length(local.availability_zones)
-  private_subnets_count    = module.private_subnet_label.enabled ? local.availability_zones_count : 0
-  intra_subnets_count      = module.intra_subnet_label.enabled ? local.availability_zones_count : 0
-  public_subnets_count     = module.public_subnet_label.enabled ? local.availability_zones_count : 0
-}
-
-#--------------------------------------------------------------
-# Private Subnets
-#--------------------------------------------------------------
-
-resource "aws_subnet" "private" {
-  count             = local.private_subnets_count
-  availability_zone = element(local.availability_zones, count.index)
-  cidr_block = cidrsubnet(
-    var.cidr_block,
-    ceil(log(local.private_subnets_count + local.intra_subnets_count + local.public_subnets_count, 2)),
-    count.index
-  )
-  map_public_ip_on_launch = false
-  vpc_id                  = aws_vpc.this[0].id
-  tags = merge(
-    module.private_subnet_label.tags,
-    {
-      "Name" = format(
-        "%s%s%s",
-        module.private_subnet_label.id,
-        module.private_subnet_label.delimiter,
-        element(local.availability_zones, count.index)
-      )
-    }
-  )
-}
-
-#--------------------------------------------------------------
-# Private Network ACL
-#--------------------------------------------------------------
-
-resource "aws_network_acl" "private" {
-  count      = module.private_subnet_label.enabled ? 1 : 0
-  vpc_id     = aws_vpc.this[0].id
-  subnet_ids = aws_subnet.private.*.id
-  tags       = module.private_label.tags
-}
-
-resource "aws_network_acl_rule" "private_ingress" {
-  count           = module.private_subnet_label.enabled ? length(var.private_ingress_acl_rules) : 0
-  network_acl_id  = aws_network_acl.private[0].id
-  egress          = false
-  rule_number     = var.private_ingress_acl_rules[count.index]["rule_number"]
-  rule_action     = var.private_ingress_acl_rules[count.index]["rule_action"]
-  from_port       = lookup(var.private_ingress_acl_rules[count.index], "from_port", null)
-  to_port         = lookup(var.private_ingress_acl_rules[count.index], "to_port", null)
-  icmp_code       = lookup(var.private_ingress_acl_rules[count.index], "icmp_code", null)
-  icmp_type       = lookup(var.private_ingress_acl_rules[count.index], "icmp_type", null)
-  protocol        = var.private_ingress_acl_rules[count.index]["protocol"]
-  cidr_block      = lookup(var.private_ingress_acl_rules[count.index], "cidr_block", null)
-  ipv6_cidr_block = lookup(var.private_ingress_acl_rules[count.index], "ipv6_cidr_block", null)
-}
-
-resource "aws_network_acl_rule" "private_egress" {
-  count           = module.private_subnet_label.enabled ? length(var.private_egress_acl_rules) : 0
-  network_acl_id  = aws_network_acl.private[0].id
-  egress          = true
-  rule_number     = var.private_egress_acl_rules[count.index]["rule_number"]
-  rule_action     = var.private_egress_acl_rules[count.index]["rule_action"]
-  from_port       = lookup(var.private_egress_acl_rules[count.index], "from_port", null)
-  to_port         = lookup(var.private_egress_acl_rules[count.index], "to_port", null)
-  icmp_code       = lookup(var.private_egress_acl_rules[count.index], "icmp_code", null)
-  icmp_type       = lookup(var.private_egress_acl_rules[count.index], "icmp_type", null)
-  protocol        = var.private_egress_acl_rules[count.index]["protocol"]
-  cidr_block      = lookup(var.private_egress_acl_rules[count.index], "cidr_block", null)
-  ipv6_cidr_block = lookup(var.private_egress_acl_rules[count.index], "ipv6_cidr_block", null)
-}
-
-#--------------------------------------------------------------
-# Private Route Table
-#--------------------------------------------------------------
-
-resource "aws_route_table" "private" {
-  count  = local.private_subnets_count
-  vpc_id = aws_vpc.this[0].id
-  tags = merge(
-    module.private_label.tags,
-    {
-      "Name" = format(
-        "%s%s%s",
-        module.private_label.id,
-        module.private_label.delimiter,
-        element(local.availability_zones, count.index)
-      )
-    }
-  )
-}
-
-#--------------------------------------------------------------
-# Private Route Table Association
-#--------------------------------------------------------------
-
-resource "aws_route_table_association" "private" {
-  count          = local.private_subnets_count
-  subnet_id      = element(aws_subnet.private.*.id, count.index)
-  route_table_id = element(aws_route_table.private.*.id, count.index)
-}
-
-#--------------------------------------------------------------
-# Intra Subnets
-#--------------------------------------------------------------
-
-resource "aws_subnet" "intra" {
-  count             = local.intra_subnets_count
-  availability_zone = element(local.availability_zones, count.index)
-  cidr_block = cidrsubnet(
-    var.cidr_block,
-    ceil(log(local.private_subnets_count + local.intra_subnets_count + local.public_subnets_count, 2)),
-    local.private_subnets_count + count.index
-  )
-  map_public_ip_on_launch = true
-  vpc_id                  = aws_vpc.this[0].id
-  tags = merge(
-    module.intra_subnet_label.tags,
-    {
-      "Name" = format(
-        "%s%s%s",
-        module.intra_subnet_label.id,
-        module.intra_subnet_label.delimiter,
-        element(local.availability_zones, count.index)
-      )
-    }
-  )
-}
-
-#--------------------------------------------------------------
-# Intra Network ACL
-#--------------------------------------------------------------
-
-resource "aws_network_acl" "intra" {
-  count      = module.intra_subnet_label.enabled ? 1 : 0
-  vpc_id     = aws_vpc.this[0].id
-  subnet_ids = aws_subnet.intra.*.id
-  tags       = module.intra_label.tags
-}
-
-resource "aws_network_acl_rule" "intra_ingress" {
-  count           = module.intra_subnet_label.enabled ? length(var.intra_ingress_acl_rules) : 0
-  network_acl_id  = aws_network_acl.intra[0].id
-  egress          = false
-  rule_number     = var.intra_ingress_acl_rules[count.index]["rule_number"]
-  rule_action     = var.intra_ingress_acl_rules[count.index]["rule_action"]
-  from_port       = lookup(var.intra_ingress_acl_rules[count.index], "from_port", null)
-  to_port         = lookup(var.intra_ingress_acl_rules[count.index], "to_port", null)
-  icmp_code       = lookup(var.intra_ingress_acl_rules[count.index], "icmp_code", null)
-  icmp_type       = lookup(var.intra_ingress_acl_rules[count.index], "icmp_type", null)
-  protocol        = var.intra_ingress_acl_rules[count.index]["protocol"]
-  cidr_block      = lookup(var.intra_ingress_acl_rules[count.index], "cidr_block", null)
-  ipv6_cidr_block = lookup(var.intra_ingress_acl_rules[count.index], "ipv6_cidr_block", null)
-}
-
-resource "aws_network_acl_rule" "intra_egress" {
-  count           = module.intra_subnet_label.enabled ? length(var.intra_egress_acl_rules) : 0
-  network_acl_id  = aws_network_acl.intra[0].id
-  egress          = true
-  rule_number     = var.intra_egress_acl_rules[count.index]["rule_number"]
-  rule_action     = var.intra_egress_acl_rules[count.index]["rule_action"]
-  from_port       = lookup(var.intra_egress_acl_rules[count.index], "from_port", null)
-  to_port         = lookup(var.intra_egress_acl_rules[count.index], "to_port", null)
-  icmp_code       = lookup(var.intra_egress_acl_rules[count.index], "icmp_code", null)
-  icmp_type       = lookup(var.intra_egress_acl_rules[count.index], "icmp_type", null)
-  protocol        = var.intra_egress_acl_rules[count.index]["protocol"]
-  cidr_block      = lookup(var.intra_egress_acl_rules[count.index], "cidr_block", null)
-  ipv6_cidr_block = lookup(var.intra_egress_acl_rules[count.index], "ipv6_cidr_block", null)
-}
-
-#--------------------------------------------------------------
-# Intra Route Table
-#--------------------------------------------------------------
-
-resource "aws_route_table" "intra" {
-  count  = module.intra_subnet_label.enabled ? 1 : 0
-  vpc_id = aws_vpc.this[0].id
-  tags   = module.intra_label.tags
-}
-
-#--------------------------------------------------------------
-# Intra Route Table Association
-#--------------------------------------------------------------
-
-resource "aws_route_table_association" "intra" {
-  count          = local.intra_subnets_count
-  subnet_id      = element(aws_subnet.intra.*.id, count.index)
-  route_table_id = element(aws_route_table.intra.*.id, 0)
+  public_subnets           = module.public_subnet_label.enabled ? var.enable_dynamic_subnets ? local.dyn_public_subnets : local.static_public_subnets : {}
+  protected_subnets        = module.protected_subnet_label.enabled ? var.enable_dynamic_subnets ? local.dyn_protected_subnets : local.static_protected_subnets : {}
+  private_subnets          = module.private_subnet_label.enabled ? var.enable_dynamic_subnets ? local.dyn_private_subnets : local.static_private_subnets : {}
+  public_subnets_count     = length(local.public_subnets)
+  protected_subnets_count  = length(local.protected_subnets)
+  private_subnets_count    = length(local.private_subnets)
 }
 
 #--------------------------------------------------------------
@@ -438,13 +272,9 @@ resource "aws_route_table_association" "intra" {
 #--------------------------------------------------------------
 
 resource "aws_subnet" "public" {
-  count             = local.public_subnets_count
-  availability_zone = element(local.availability_zones, count.index)
-  cidr_block = cidrsubnet(
-    var.cidr_block,
-    ceil(log(local.private_subnets_count + local.intra_subnets_count + local.public_subnets_count, 2)),
-    local.private_subnets_count + local.intra_subnets_count + count.index
-  )
+  count                   = local.public_subnets_count
+  availability_zone       = element(values(local.public_subnets), count.index)
+  cidr_block              = element(keys(local.public_subnets), count.index)
   map_public_ip_on_launch = true
   vpc_id                  = aws_vpc.this[0].id
   tags = merge(
@@ -454,7 +284,7 @@ resource "aws_subnet" "public" {
         "%s%s%s",
         module.public_subnet_label.id,
         module.public_subnet_label.delimiter,
-        element(local.availability_zones, count.index)
+        element(values(local.public_subnets), count.index)
       )
     }
   )
@@ -486,6 +316,7 @@ resource "aws_network_acl_rule" "public_ingress" {
   ipv6_cidr_block = lookup(var.public_ingress_acl_rules[count.index], "ipv6_cidr_block", null)
 }
 
+#tfsec:ignore:aws-vpc-no-excessive-port-access
 resource "aws_network_acl_rule" "public_egress" {
   count           = module.public_subnet_label.enabled ? length(var.public_egress_acl_rules) : 0
   network_acl_id  = aws_network_acl.public[0].id
@@ -530,6 +361,186 @@ resource "aws_route_table_association" "public" {
   count          = local.public_subnets_count
   subnet_id      = element(aws_subnet.public.*.id, count.index)
   route_table_id = element(aws_route_table.public.*.id, 0)
+}
+
+#--------------------------------------------------------------
+# Protected Subnets
+#--------------------------------------------------------------
+
+resource "aws_subnet" "protected" {
+  count                   = local.protected_subnets_count
+  availability_zone       = element(values(local.protected_subnets), count.index)
+  cidr_block              = element(keys(local.protected_subnets), count.index)
+  map_public_ip_on_launch = false
+  vpc_id                  = aws_vpc.this[0].id
+  tags = merge(
+    module.protected_subnet_label.tags,
+    {
+      "Name" = format(
+        "%s%s%s",
+        module.protected_subnet_label.id,
+        module.protected_subnet_label.delimiter,
+        element(values(local.protected_subnets), count.index)
+      )
+    }
+  )
+}
+
+#--------------------------------------------------------------
+# Protected Network ACL
+#--------------------------------------------------------------
+
+resource "aws_network_acl" "protected" {
+  count      = module.protected_subnet_label.enabled ? 1 : 0
+  vpc_id     = aws_vpc.this[0].id
+  subnet_ids = aws_subnet.protected.*.id
+  tags       = module.protected_label.tags
+}
+
+resource "aws_network_acl_rule" "protected_ingress" {
+  count           = module.protected_subnet_label.enabled ? length(var.protected_ingress_acl_rules) : 0
+  network_acl_id  = aws_network_acl.protected[0].id
+  egress          = false
+  rule_number     = var.protected_ingress_acl_rules[count.index]["rule_number"]
+  rule_action     = var.protected_ingress_acl_rules[count.index]["rule_action"]
+  from_port       = lookup(var.protected_ingress_acl_rules[count.index], "from_port", null)
+  to_port         = lookup(var.protected_ingress_acl_rules[count.index], "to_port", null)
+  icmp_code       = lookup(var.protected_ingress_acl_rules[count.index], "icmp_code", null)
+  icmp_type       = lookup(var.protected_ingress_acl_rules[count.index], "icmp_type", null)
+  protocol        = var.protected_ingress_acl_rules[count.index]["protocol"]
+  cidr_block      = lookup(var.protected_ingress_acl_rules[count.index], "cidr_block", null)
+  ipv6_cidr_block = lookup(var.protected_ingress_acl_rules[count.index], "ipv6_cidr_block", null)
+}
+
+#tfsec:ignore:aws-vpc-no-excessive-port-access
+resource "aws_network_acl_rule" "protected_egress" {
+  count           = module.protected_subnet_label.enabled ? length(var.protected_egress_acl_rules) : 0
+  network_acl_id  = aws_network_acl.protected[0].id
+  egress          = true
+  rule_number     = var.protected_egress_acl_rules[count.index]["rule_number"]
+  rule_action     = var.protected_egress_acl_rules[count.index]["rule_action"]
+  from_port       = lookup(var.protected_egress_acl_rules[count.index], "from_port", null)
+  to_port         = lookup(var.protected_egress_acl_rules[count.index], "to_port", null)
+  icmp_code       = lookup(var.protected_egress_acl_rules[count.index], "icmp_code", null)
+  icmp_type       = lookup(var.protected_egress_acl_rules[count.index], "icmp_type", null)
+  protocol        = var.protected_egress_acl_rules[count.index]["protocol"]
+  cidr_block      = lookup(var.protected_egress_acl_rules[count.index], "cidr_block", null)
+  ipv6_cidr_block = lookup(var.protected_egress_acl_rules[count.index], "ipv6_cidr_block", null)
+}
+
+#--------------------------------------------------------------
+# Protected Route Table
+#--------------------------------------------------------------
+
+resource "aws_route_table" "protected" {
+  count  = local.protected_subnets_count
+  vpc_id = aws_vpc.this[0].id
+  tags = merge(
+    module.protected_label.tags,
+    {
+      "Name" = format(
+        "%s%s%s",
+        module.protected_label.id,
+        module.protected_label.delimiter,
+        element(local.availability_zones, count.index)
+      )
+    }
+  )
+}
+
+#--------------------------------------------------------------
+# Protected Route Table Association
+#--------------------------------------------------------------
+
+resource "aws_route_table_association" "protected" {
+  count          = local.protected_subnets_count
+  subnet_id      = element(aws_subnet.protected.*.id, count.index)
+  route_table_id = element(aws_route_table.protected.*.id, count.index)
+}
+
+#--------------------------------------------------------------
+# Private Subnets
+#--------------------------------------------------------------
+
+resource "aws_subnet" "private" {
+  count                   = local.private_subnets_count
+  availability_zone       = element(values(local.private_subnets), count.index)
+  cidr_block              = element(keys(local.private_subnets), count.index)
+  map_public_ip_on_launch = false
+  vpc_id                  = aws_vpc.this[0].id
+  tags = merge(
+    module.private_subnet_label.tags,
+    {
+      "Name" = format(
+        "%s%s%s",
+        module.private_subnet_label.id,
+        module.private_subnet_label.delimiter,
+        element(values(local.private_subnets), count.index)
+      )
+    }
+  )
+}
+
+#--------------------------------------------------------------
+# Private Network ACL
+#--------------------------------------------------------------
+
+resource "aws_network_acl" "private" {
+  count      = module.private_subnet_label.enabled ? 1 : 0
+  vpc_id     = aws_vpc.this[0].id
+  subnet_ids = aws_subnet.private.*.id
+  tags       = module.private_label.tags
+}
+
+resource "aws_network_acl_rule" "private_ingress" {
+  count           = module.private_subnet_label.enabled ? length(var.private_ingress_acl_rules) : 0
+  network_acl_id  = aws_network_acl.private[0].id
+  egress          = false
+  rule_number     = var.private_ingress_acl_rules[count.index]["rule_number"]
+  rule_action     = var.private_ingress_acl_rules[count.index]["rule_action"]
+  from_port       = lookup(var.private_ingress_acl_rules[count.index], "from_port", null)
+  to_port         = lookup(var.private_ingress_acl_rules[count.index], "to_port", null)
+  icmp_code       = lookup(var.private_ingress_acl_rules[count.index], "icmp_code", null)
+  icmp_type       = lookup(var.private_ingress_acl_rules[count.index], "icmp_type", null)
+  protocol        = var.private_ingress_acl_rules[count.index]["protocol"]
+  cidr_block      = lookup(var.private_ingress_acl_rules[count.index], "cidr_block", null)
+  ipv6_cidr_block = lookup(var.private_ingress_acl_rules[count.index], "ipv6_cidr_block", null)
+}
+
+#tfsec:ignore:aws-vpc-no-excessive-port-access
+resource "aws_network_acl_rule" "private_egress" {
+  count           = module.private_subnet_label.enabled ? length(var.private_egress_acl_rules) : 0
+  network_acl_id  = aws_network_acl.private[0].id
+  egress          = true
+  rule_number     = var.private_egress_acl_rules[count.index]["rule_number"]
+  rule_action     = var.private_egress_acl_rules[count.index]["rule_action"]
+  from_port       = lookup(var.private_egress_acl_rules[count.index], "from_port", null)
+  to_port         = lookup(var.private_egress_acl_rules[count.index], "to_port", null)
+  icmp_code       = lookup(var.private_egress_acl_rules[count.index], "icmp_code", null)
+  icmp_type       = lookup(var.private_egress_acl_rules[count.index], "icmp_type", null)
+  protocol        = var.private_egress_acl_rules[count.index]["protocol"]
+  cidr_block      = lookup(var.private_egress_acl_rules[count.index], "cidr_block", null)
+  ipv6_cidr_block = lookup(var.private_egress_acl_rules[count.index], "ipv6_cidr_block", null)
+}
+
+#--------------------------------------------------------------
+# Private Route Table
+#--------------------------------------------------------------
+
+resource "aws_route_table" "private" {
+  count  = module.private_subnet_label.enabled ? 1 : 0
+  vpc_id = aws_vpc.this[0].id
+  tags   = module.private_label.tags
+}
+
+#--------------------------------------------------------------
+# Private Route Table Association
+#--------------------------------------------------------------
+
+resource "aws_route_table_association" "private" {
+  count          = local.private_subnets_count
+  subnet_id      = element(aws_subnet.private.*.id, count.index)
+  route_table_id = element(aws_route_table.private.*.id, 0)
 }
 
 #--------------------------------------------------------------
@@ -587,11 +598,11 @@ resource "aws_nat_gateway" "this" {
 
 resource "aws_route" "nat" {
   count                  = module.nat_label.enabled ? local.availability_zones_count : 0
-  route_table_id         = element(aws_route_table.private.*.id, count.index)
+  route_table_id         = element(aws_route_table.protected.*.id, count.index)
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = element(aws_nat_gateway.this.*.id, count.index)
   depends_on = [
-    aws_route_table.private
+    aws_route_table.protected
   ]
 }
 
@@ -613,16 +624,16 @@ resource "aws_vpc_endpoint" "s3" {
   vpc_endpoint_type = "Gateway"
 }
 
+resource "aws_vpc_endpoint_route_table_association" "protected_s3" {
+  count           = module.s3_vpc_endpoint_label.enabled && module.protected_label.enabled ? local.availability_zones_count : 0
+  vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
+  route_table_id  = element(aws_route_table.protected.*.id, count.index)
+}
+
 resource "aws_vpc_endpoint_route_table_association" "private_s3" {
   count           = module.s3_vpc_endpoint_label.enabled && module.private_label.enabled ? local.availability_zones_count : 0
   vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
   route_table_id  = element(aws_route_table.private.*.id, count.index)
-}
-
-resource "aws_vpc_endpoint_route_table_association" "intra_s3" {
-  count           = module.s3_vpc_endpoint_label.enabled && module.intra_label.enabled ? local.availability_zones_count : 0
-  vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
-  route_table_id  = element(aws_route_table.intra.*.id, count.index)
 }
 
 resource "aws_vpc_endpoint_route_table_association" "public_s3" {
@@ -649,16 +660,16 @@ resource "aws_vpc_endpoint" "dynamodb" {
   vpc_endpoint_type = "Gateway"
 }
 
+resource "aws_vpc_endpoint_route_table_association" "protected_dynamodb" {
+  count           = module.dynamodb_vpc_endpoint_label.enabled && module.protected_label.enabled ? local.availability_zones_count : 0
+  vpc_endpoint_id = aws_vpc_endpoint.dynamodb[0].id
+  route_table_id  = element(aws_route_table.protected.*.id, count.index)
+}
+
 resource "aws_vpc_endpoint_route_table_association" "private_dynamodb" {
   count           = module.dynamodb_vpc_endpoint_label.enabled && module.private_label.enabled ? local.availability_zones_count : 0
   vpc_endpoint_id = aws_vpc_endpoint.dynamodb[0].id
   route_table_id  = element(aws_route_table.private.*.id, count.index)
-}
-
-resource "aws_vpc_endpoint_route_table_association" "intra_dynamodb" {
-  count           = module.dynamodb_vpc_endpoint_label.enabled && module.intra_label.enabled ? local.availability_zones_count : 0
-  vpc_endpoint_id = aws_vpc_endpoint.dynamodb[0].id
-  route_table_id  = element(aws_route_table.intra.*.id, count.index)
 }
 
 resource "aws_vpc_endpoint_route_table_association" "public_dynamodb" {
