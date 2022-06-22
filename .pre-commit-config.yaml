@@ -21,7 +21,7 @@ repos:
           - '--args=--only=terraform_workspace_remote'
       - id: terraform_tfsec
   - repo: https://github.com/terraform-docs/terraform-docs
-    rev: v0.15.0
+    rev: v0.16.0
     hooks:
       - id: terraform-docs-system
         args:
@@ -33,7 +33,7 @@ repos:
           - "--output-mode"
           - "inject"
           - "."
-  - repo: git://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
     hooks:
       - id: check-merge-conflict
