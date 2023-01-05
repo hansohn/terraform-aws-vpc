@@ -73,8 +73,9 @@ jobs:
         run: tfget ${{ matrix.version }}
       - name: Validate
         run: |
-            terraform -chdir=${{ matrix.directory }} init --backend=false
-            terraform -chdir=${{ matrix.directory }} validate
+            cd ${{ matrix.directory }}
+            terraform init --backend=false
+            terraform validate
 
   validate_max_versions:
     name: Validate TF Max Version
@@ -96,16 +97,18 @@ jobs:
         run: tfget ${{ matrix.version }}
       - name: Terraform Fmt
         run: |
-            terraform -chdir=${{ matrix.directory }} fmt --check
+            cd ${{ matrix.directory }}
+            terraform fmt --check
       - name: Validate
         run: |
-            terraform -chdir=${{ matrix.directory }} init --backend=false
-            terraform -chdir=${{ matrix.directory }} validate
+            cd ${{ matrix.directory }}
+            terraform init --backend=false
+            terraform validate
       - name: Tflint
         run: |
+            cd ${{ matrix.directory }}
             tflint \
               --config=.tflint.hcl \
-              --chdir=${{ matrix.directory }} \
               --only=terraform_comment_syntax \
               --only=terraform_deprecated_index \
               --only=terraform_deprecated_interpolation \
