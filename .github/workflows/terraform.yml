@@ -106,9 +106,9 @@ jobs:
             terraform validate
       - name: Tflint
         run: |
-            cd ${{ matrix.directory }}
             tflint \
               --config=.tflint.hcl \
+              --chdir=${{ matrix.directory }} \
               --only=terraform_comment_syntax \
               --only=terraform_deprecated_index \
               --only=terraform_deprecated_interpolation \
