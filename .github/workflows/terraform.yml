@@ -1,5 +1,5 @@
 ---
-name: Terraform Pipeline
+name: terraform
 
 on:
   workflow_dispatch:
@@ -54,11 +54,12 @@ jobs:
       maxVersion: ${{ steps.versions.outputs.maxVersion }}
 
   validate_min_versions:
-    name: Validate TF Min Versions
+    name: Validate TF Min Version
     needs:
       - terraform_modules
       - terraform_versions
-    runs-on: hansohn/terraform
+    runs-on: ubuntu-latest
+    container: hansohn/terraform:latest
     strategy:
       fail-fast: false
       matrix:
@@ -76,11 +77,12 @@ jobs:
             terraform -chdir=${{ matrix.directory }} validate
 
   validate_max_versions:
-    name: Validate TF Max Versions
+    name: Validate TF Max Version
     needs:
       - terraform_modules
       - terraform_versions
-    runs-on: hansohn/terraform
+    runs-on: ubuntu-latest
+    container: hansohn/terraform:latest
     strategy:
       fail-fast: false
       matrix:
@@ -123,3 +125,24 @@ jobs:
             --output-file README.md \
             markdown \
             ${{ matrix.directory }}
+
+  slack:
+    if: always()
+    needs:
+      - terraform_modules
+      - terraform_versions
+      - validate_min_versions
+      - validate_max_versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Slack Notification
+        uses: Gamesight/slack-workflow-status@master
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          channel: ${{ secrets.SLACK_CHANNEL_ID }}
+          name: ${{ secrets.SLACK_USERNAME }}
+          icon_url: "https://cdn-icons-png.flaticon.com/512/25/25231.png"
