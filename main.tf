@@ -127,14 +127,14 @@ resource "aws_default_network_acl" "this" {
   default_network_acl_id = aws_vpc.this[0].default_network_acl_id
   subnet_ids = setsubtract(
     compact(flatten([
-      aws_subnet.public.*.id,
-      aws_subnet.protected.*.id,
-      aws_subnet.private.*.id
+      aws_subnet.public[*].id,
+      aws_subnet.protected[*].id,
+      aws_subnet.private[*].id
     ])),
     compact(flatten([
-      aws_network_acl.public.*.subnet_ids,
-      aws_network_acl.protected.*.subnet_ids,
-      aws_network_acl.private.*.subnet_ids
+      aws_network_acl.public[*].subnet_ids,
+      aws_network_acl.protected[*].subnet_ids,
+      aws_network_acl.private[*].subnet_ids
     ]))
   )
   dynamic "ingress" {
@@ -252,9 +252,9 @@ locals {
 
   # static subnets
   static_azs               = distinct(flatten([values(var.public_subnet_cidrs), values(var.protected_subnet_cidrs), values(var.private_subnet_cidrs)]))
-  static_public_subnets    = module.public_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.public_subnet_cidrs : { for i in v : "${i}" => k }]...) : {}
-  static_protected_subnets = module.protected_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.protected_subnet_cidrs : { for i in v : "${i}" => k }]...) : {}
-  static_private_subnets   = module.private_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.private_subnet_cidrs : { for i in v : "${i}" => k }]...) : {}
+  static_public_subnets    = module.public_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.public_subnet_cidrs : { for i in v : i => k }]...) : {}
+  static_protected_subnets = module.protected_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.protected_subnet_cidrs : { for i in v : i => k }]...) : {}
+  static_private_subnets   = module.private_subnet_label.enabled && !var.enable_dynamic_subnets ? merge([for k, v in var.private_subnet_cidrs : { for i in v : i => k }]...) : {}
 
   # computed subnets
   availability_zones       = var.enable_dynamic_subnets ? local.dyn_azs : local.static_azs
@@ -297,7 +297,7 @@ resource "aws_subnet" "public" {
 resource "aws_network_acl" "public" {
   count      = module.public_subnet_label.enabled ? 1 : 0
   vpc_id     = aws_vpc.this[0].id
-  subnet_ids = aws_subnet.public.*.id
+  subnet_ids = aws_subnet.public[*].id
   tags       = module.public_label.tags
 }
 
@@ -348,7 +348,7 @@ resource "aws_route_table" "public" {
 
 resource "aws_route" "public" {
   count                  = module.public_subnet_label.enabled ? 1 : 0
-  route_table_id         = element(aws_route_table.public.*.id, 0)
+  route_table_id         = element(aws_route_table.public[*].id, 0)
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.this[0].id
 }
@@ -359,8 +359,8 @@ resource "aws_route" "public" {
 
 resource "aws_route_table_association" "public" {
   count          = local.public_subnets_count
-  subnet_id      = element(aws_subnet.public.*.id, count.index)
-  route_table_id = element(aws_route_table.public.*.id, 0)
+  subnet_id      = element(aws_subnet.public[*].id, count.index)
+  route_table_id = element(aws_route_table.public[*].id, 0)
 }
 
 #--------------------------------------------------------------
@@ -393,7 +393,7 @@ resource "aws_subnet" "protected" {
 resource "aws_network_acl" "protected" {
   count      = module.protected_subnet_label.enabled ? 1 : 0
   vpc_id     = aws_vpc.this[0].id
-  subnet_ids = aws_subnet.protected.*.id
+  subnet_ids = aws_subnet.protected[*].id
   tags       = module.protected_label.tags
 }
 
@@ -454,8 +454,8 @@ resource "aws_route_table" "protected" {
 
 resource "aws_route_table_association" "protected" {
   count          = local.protected_subnets_count
-  subnet_id      = element(aws_subnet.protected.*.id, count.index)
-  route_table_id = element(aws_route_table.protected.*.id, count.index)
+  subnet_id      = element(aws_subnet.protected[*].id, count.index)
+  route_table_id = element(aws_route_table.protected[*].id, count.index)
 }
 
 #--------------------------------------------------------------
@@ -488,7 +488,7 @@ resource "aws_subnet" "private" {
 resource "aws_network_acl" "private" {
   count      = module.private_subnet_label.enabled ? 1 : 0
   vpc_id     = aws_vpc.this[0].id
-  subnet_ids = aws_subnet.private.*.id
+  subnet_ids = aws_subnet.private[*].id
   tags       = module.private_label.tags
 }
 
@@ -539,8 +539,8 @@ resource "aws_route_table" "private" {
 
 resource "aws_route_table_association" "private" {
   count          = local.private_subnets_count
-  subnet_id      = element(aws_subnet.private.*.id, count.index)
-  route_table_id = element(aws_route_table.private.*.id, 0)
+  subnet_id      = element(aws_subnet.private[*].id, count.index)
+  route_table_id = element(aws_route_table.private[*].id, 0)
 }
 
 #--------------------------------------------------------------
@@ -573,8 +573,8 @@ resource "aws_eip" "this" {
 
 resource "aws_nat_gateway" "this" {
   count         = module.nat_label.enabled ? local.availability_zones_count : 0
-  allocation_id = element(aws_eip.this.*.id, count.index)
-  subnet_id     = element(aws_subnet.public.*.id, count.index)
+  allocation_id = element(aws_eip.this[*].id, count.index)
+  subnet_id     = element(aws_subnet.public[*].id, count.index)
   tags = merge(
     module.nat_label.tags,
     {
@@ -598,9 +598,9 @@ resource "aws_nat_gateway" "this" {
 
 resource "aws_route" "nat" {
   count                  = module.nat_label.enabled ? local.availability_zones_count : 0
-  route_table_id         = element(aws_route_table.protected.*.id, count.index)
+  route_table_id         = element(aws_route_table.protected[*].id, count.index)
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = element(aws_nat_gateway.this.*.id, count.index)
+  nat_gateway_id         = element(aws_nat_gateway.this[*].id, count.index)
   depends_on = [
     aws_route_table.protected
   ]
@@ -627,19 +627,19 @@ resource "aws_vpc_endpoint" "s3" {
 resource "aws_vpc_endpoint_route_table_association" "protected_s3" {
   count           = module.s3_vpc_endpoint_label.enabled && module.protected_label.enabled ? local.availability_zones_count : 0
   vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
-  route_table_id  = element(aws_route_table.protected.*.id, count.index)
+  route_table_id  = element(aws_route_table.protected[*].id, count.index)
 }
 
 resource "aws_vpc_endpoint_route_table_association" "private_s3" {
   count           = module.s3_vpc_endpoint_label.enabled && module.private_label.enabled ? local.availability_zones_count : 0
   vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
-  route_table_id  = element(aws_route_table.private.*.id, count.index)
+  route_table_id  = element(aws_route_table.private[*].id, count.index)
 }
 
 resource "aws_vpc_endpoint_route_table_association" "public_s3" {
   count           = module.s3_vpc_endpoint_label.enabled && module.public_label.enabled ? local.availability_zones_count : 0
   vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
-  route_table_id  = element(aws_route_table.public.*.id, count.index)
+  route_table_id  = element(aws_route_table.public[*].id, count.index)
 }
 
 #--------------------------------------------------------------
@@ -663,17 +663,17 @@ resource "aws_vpc_endpoint" "dynamodb" {
 resource "aws_vpc_endpoint_route_table_association" "protected_dynamodb" {
   count           = module.dynamodb_vpc_endpoint_label.enabled && module.protected_label.enabled ? local.availability_zones_count : 0
   vpc_endpoint_id = aws_vpc_endpoint.dynamodb[0].id
-  route_table_id  = element(aws_route_table.protected.*.id, count.index)
+  route_table_id  = element(aws_route_table.protected[*].id, count.index)
 }
 
 resource "aws_vpc_endpoint_route_table_association" "private_dynamodb" {
   count           = module.dynamodb_vpc_endpoint_label.enabled && module.private_label.enabled ? local.availability_zones_count : 0
   vpc_endpoint_id = aws_vpc_endpoint.dynamodb[0].id
-  route_table_id  = element(aws_route_table.private.*.id, count.index)
+  route_table_id  = element(aws_route_table.private[*].id, count.index)
 }
 
 resource "aws_vpc_endpoint_route_table_association" "public_dynamodb" {
   count           = module.dynamodb_vpc_endpoint_label.enabled && module.public_label.enabled ? local.availability_zones_count : 0
   vpc_endpoint_id = aws_vpc_endpoint.dynamodb[0].id
-  route_table_id  = element(aws_route_table.public.*.id, count.index)
+  route_table_id  = element(aws_route_table.public[*].id, count.index)
 }
