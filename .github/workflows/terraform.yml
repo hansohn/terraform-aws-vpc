@@ -16,7 +16,7 @@ on:
 
 jobs:
   terraform_modules:
-    name: Gen TF Module Matrix
+    name: loc_tf_modules
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,7 +34,7 @@ jobs:
       directories: ${{ steps.matrix.outputs.directories }}
 
   terraform_versions:
-    name: Gen TF Version Matrix
+    name: get_tf_vers
     needs:
       - terraform_modules
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
       maxVersion: ${{ steps.versions.outputs.maxVersion }}
 
   validate_min_versions:
-    name: Validate TF Min Version
+    name: test_tf_min_ver
     needs:
       - terraform_modules
       - terraform_versions
@@ -78,7 +78,7 @@ jobs:
             terraform validate
 
   validate_max_versions:
-    name: Validate TF Max Version
+    name: test_tf_max_ver
     needs:
       - terraform_modules
       - terraform_versions
@@ -107,10 +107,8 @@ jobs:
       - name: Tflint
         run: |
             tflint \
-              --config=.tflint.hcl \
               --init
             tflint \
-              --config=.tflint.hcl \
               --chdir=${{ matrix.directory }} \
               --only=terraform_comment_syntax \
               --only=terraform_deprecated_index \
