@@ -122,11 +122,12 @@ jobs:
       - name: Terraform Docs
         run: |
             terraform-docs \
-            --lockfile=false \
-            --output-mode inject \
-            --output-file README.md \
-            markdown \
-            ${{ matrix.directory }}
+              --lockfile=false \
+              --output-check=true \
+              --output-file README.md \
+              --output-mode inject \
+              markdown \
+              ${{ matrix.directory }}
 
   slack:
     if: always()
