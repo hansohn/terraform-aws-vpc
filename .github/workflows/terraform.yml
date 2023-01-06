@@ -120,6 +120,7 @@ jobs:
               --only=terraform_typed_variables \
               --only=terraform_workspace_remote
       - name: Terraform Docs
+        if ! startsWith(${{ matrix.directory }}, './examples/')
         run: |
             terraform-docs \
               --lockfile=false \
