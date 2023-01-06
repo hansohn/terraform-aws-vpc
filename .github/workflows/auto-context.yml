@@ -23,7 +23,7 @@ jobs:
         id: update
         shell: bash
         run: |
-            if [[ if context.tf ]]; then
+            if [[ -f context.tf ]]; then
               ${{ env.CURL }} https://raw.githubusercontent.com/cloudposse/terraform-null-label/master/exports/context.tf -o context.tf
               if ! git diff --no-patch --exit-code context.tf; then
                 echo "context.tf file has been updated. Rebuilding README.md"
