@@ -120,13 +120,15 @@ jobs:
               --only=terraform_typed_variables \
               --only=terraform_workspace_remote
       - name: Terraform Docs
+        if: ${{ !startsWith(matrix.directory, './examples/') }}
         run: |
             terraform-docs \
-            --lockfile=false \
-            --output-mode inject \
-            --output-file README.md \
-            markdown \
-            ${{ matrix.directory }}
+              --lockfile=false \
+              --output-check=true \
+              --output-file README.md \
+              --output-mode inject \
+              markdown \
+              ${{ matrix.directory }}
 
   slack:
     if: always()
