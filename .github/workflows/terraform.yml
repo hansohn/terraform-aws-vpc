@@ -107,8 +107,6 @@ jobs:
       - name: Tflint
         run: |
             tflint \
-              --init
-            tflint \
               --chdir=${{ matrix.directory }} \
               --only=terraform_comment_syntax \
               --only=terraform_deprecated_index \
