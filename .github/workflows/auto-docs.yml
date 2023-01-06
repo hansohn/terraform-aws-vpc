@@ -10,7 +10,7 @@ on:
       - synchronize
 
 jobs:
-  docs:
+  auto-docs:
     runs-on: ubuntu-latest
     steps:
       # Checkout the pull request branch
@@ -20,9 +20,9 @@ jobs:
       # However, using a personal access token will cause events to be triggered.
       # We need that to ensure a status gets posted after the auto-format commit.
       # We also want to trigger tests if the auto-format made no changes.
-      - uses: actions/checkout@v2
+      - name: checkout
+        uses: actions/checkout@v2
         if: github.event.pull_request.state == 'open'
-        name: Privileged Checkout
         with:
           token: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -30,7 +30,7 @@ jobs:
           # Use `ref` instead of `sha` to enable pushing back to `ref`
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Render terraform docs inside the README.md
+      - name: readme
         uses: terraform-docs/gh-actions@v1
         with:
           args: "--lockfile=false"
