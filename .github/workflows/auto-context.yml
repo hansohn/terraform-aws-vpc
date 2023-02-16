@@ -4,11 +4,10 @@ name: auto-context
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 6 * * 1'
 
 env:
   CURL: 'curl -fsSL --netrc-optional'
-  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
 jobs:
   update:
@@ -17,7 +16,10 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: CVE-2022-24765 fix
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Update context.tf
         id: update
