@@ -1,8 +1,8 @@
 region = "us-west-2"
 
-namespace = "eg"
+namespace = "hansohn"
 stage     = "test"
-name      = "vpc"
+name      = "main"
 
 cidr_block                       = "10.0.0.0/22"
 enable_dns_support               = true
