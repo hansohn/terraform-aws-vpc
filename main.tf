@@ -108,8 +108,6 @@ resource "aws_vpc" "this" {
   instance_tenancy                 = var.instance_tenancy
   enable_dns_support               = var.enable_dns_support
   enable_dns_hostnames             = var.enable_dns_hostnames
-  enable_classiclink               = var.enable_classiclink
-  enable_classiclink_dns_support   = var.enable_classiclink_dns_support
   assign_generated_ipv6_cidr_block = var.assign_generated_ipv6_cidr_block
   tags                             = module.vpc_label.tags
 
@@ -548,8 +546,8 @@ resource "aws_route_table_association" "private" {
 #--------------------------------------------------------------
 
 resource "aws_eip" "this" {
-  count = module.nat_label.enabled ? local.availability_zones_count : 0
-  vpc   = true
+  count  = module.nat_label.enabled ? local.availability_zones_count : 0
+  domain = "vpc"
   tags = merge(
     module.nat_label.tags,
     {

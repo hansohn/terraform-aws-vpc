@@ -32,11 +32,6 @@ output "vpc_enable_dns_hostnames" {
   description = "Whether or not the VPC has DNS hostname support"
 }
 
-output "vpc_enable_classiclink" {
-  value       = element(concat(aws_vpc.this[*].enable_classiclink, [""]), 0)
-  description = "Whether or not the VPC has Classiclink enabled"
-}
-
 output "vpc_main_route_table_id" {
   value       = element(concat(aws_vpc.this[*].main_route_table_id, [""]), 0)
   description = "The ID of the main route table associated with this VPC. Note that you can change a VPC's main route table by using an aws_main_route_table_association."

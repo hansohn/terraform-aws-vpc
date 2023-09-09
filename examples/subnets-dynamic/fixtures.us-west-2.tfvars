@@ -1,9 +1,9 @@
 region             = "us-west-2"
 availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"]
 
-namespace = "eg"
+namespace = "hansohn"
 stage     = "test"
-name      = "vpc"
+name      = "main"
 
 cidr_block                       = "10.0.0.0/22"
 enable_dns_support               = true
@@ -11,7 +11,7 @@ enable_dns_hostnames             = true
 assign_generated_ipv6_cidr_block = true
 enable_internet_gateway          = true
 
-enable_dynamic_subnets   = false
+enable_dynamic_subnets   = true
 enable_public_network    = true
 enable_protected_network = true
 enable_private_network   = true
