@@ -127,7 +127,7 @@ jobs:
               --output-check=true \
               --output-file README.md \
               --output-mode inject \
-              markdown \
+              markdown table \
               ${{ matrix.directory }}
 
   slack:
