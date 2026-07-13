@@ -21,6 +21,16 @@
   </p>
 </div>
 
+> [!CAUTION]
+> **This module is deprecated and is no longer maintained.**
+>
+> - If you want to keep **auto-calculated subnet CIDR blocks**, use
+>   [`hansohn/terraform-aws-subnet-calculator`](https://github.com/hansohn/terraform-aws-subnet-calculator)
+>   to compute the CIDRs and feed them into a VPC module.
+> - Otherwise, use the community-standard
+>   [`terraform-aws-modules/vpc`](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws)
+>   module directly.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
